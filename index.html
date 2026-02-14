@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>for Loopy · a bouquet of love</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(145deg, #fbdee9 0%, #fccfdc 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Quicksand', 'Segoe UI', sans-serif;
+      padding: 1.5rem;
+    }
+
+    /* envelope container */
+    .envelope-wrapper {
+      max-width: 850px;
+      width: 100%;
+      cursor: pointer;
+      filter: drop-shadow(0 25px 25px #f7a3bb);
+      transition: transform 0.2s;
+    }
+
+    .envelope-wrapper:active {
+      transform: scale(0.99);
+    }
+
+    .envelope {
+      background: #ffe2db;
+      background: linear-gradient(145deg, #ffd9d2, #ffcbc4);
+      border-radius: 45px 45px 30px 30px;
+      box-shadow: 0 18px 0 #ce7d96, 0 0 0 4px #fff9f7 inset;
+      padding: 3rem 2.5rem 3rem;
+      position: relative;
+      border: 4px solid #fff6f2;
+    }
+
+    /* envelope flap */
+    .envelope::before {
+      content: '';
+      position: absolute;
+      top: -38px;
+      left: 10%;
+      width: 80%;
+      height: 68px;
+      background: #fecbc4;
+      background: linear-gradient(145deg, #ffcbc4, #ffb8b0);
+      border-radius: 70px 70px 30px 30px;
+      box-shadow: 0 -10px 0 #ce7d96, 0 12px 18px rgba(0,0,0,0.05);
+      border: 4px solid #fff8f5;
+      border-bottom: none;
+      clip-path: polygon(0% 0%, 100% 0%, 88% 100%, 12% 100%);
+      transition: top 0.3s ease-in-out, transform 0.3s;
+      z-index: 5;
+    }
+
+    .envelope.open::before {
+      top: -60px;
+      transform: rotate(3deg);
+    }
+
+    /* heart on flap */
+    .flap-heart {
+      position: absolute;
+      top: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2.5rem;
+      color: #ff3b5c;
+      filter: drop-shadow(0 8px 6px #fc9eb6);
+      z-index: 10;
+      transition: top 0.3s;
+      text-shadow: 0 3px 0 white;
+    }
+
+    .envelope.open .flap-heart {
+      top: -48px;
+    }
+
+    /* envelope seal */
+    .seal {
+      position: absolute;
+      bottom: 22px;
+      right: 35px;
+      width: 64px;
+      height: 64px;
+      background: #ffb1c2;
+      border-radius: 50% 50% 0 50%;
+      transform: rotate(45deg);
+      box-shadow: 0 8px 0 #bb6c84, 0 12px 22px #f78dab;
+      border: 4px solid #fff5f2;
+      z-index: 15;
+    }
+
+    .seal::after {
+      content: '♥';
+      position: absolute;
+      top: 10px;
+      left: 18px;
+      font-size: 2.5rem;
+      color: white;
+      transform: rotate(-45deg);
+      text-shadow: 0 4px 4px #a04260;
+    }
+
+    /* inside area (canvas + message box) */
+    .flower-inside {
+      background: #fffaf8;
+      border-radius: 40px 20px 40px 20px;
+      padding: 2.2rem 1.8rem 2rem;
+      box-shadow: inset 0 0 0 4px #ffefe9, 0 15px 18px -12px #c56e89;
+      transition: opacity 0.3s, transform 0.3s;
+      text-align: center;
+      border: 3px solid #ffe6e0;
+      min-height: 620px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .envelope:not(.open) .flower-inside {
+      opacity: 0.55;
+      transform: scale(0.98);
+      filter: blur(1.5px);
+      pointer-events: none;
+    }
+
+    .envelope.open .flower-inside {
+      opacity: 1;
+      transform: scale(1);
+      filter: blur(0);
+      pointer-events: auto;
+    }
+
+    /* canvas for realistic bouquet */
+    #flowerCanvas {
+      display: block;
+      width: 100%;
+      max-width: 520px;
+      height: auto;
+      background: transparent;
+      margin: 0 auto;
+      border-radius: 24px;
+    }
+
+    /* long message box */
+    .message-box {
+      margin-top: 1.8rem;
+      background: #fff9f5;
+      border: 4px solid #ffc2cf;
+      border-radius: 60px 20px 60px 20px;
+      padding: 1.8rem 2.2rem;
+      box-shadow: 0 10px 0 #f7aec4, 0 8px 20px #fec0d2;
+      max-width: 95%;
+    }
+
+    .message-box p {
+      font-size: 1.4rem;
+      font-weight: 500;
+      color: #a13557;
+      font-family: 'Georgia', serif;
+      line-height: 1.6;
+      text-shadow: 0 2px 4px #ffe2ec;
+      text-align: left;
+    }
+
+    .message-box .signature {
+      display: block;
+      margin-top: 1rem;
+      font-size: 1.5rem;
+      color: #c43b65;
+      text-align: right;
+      font-style: italic;
+    }
+  </style>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="envelope-wrapper" id="envelopeWrapper">
+    <div class="envelope" id="envelope">
+      <div class="flap-heart">❤️</div>
+      <div class="seal"></div>
+
+      <!-- inside: canvas for bouquet and message box -->
+      <div class="flower-inside">
+        <canvas id="flowerCanvas" width="520" height="520"></canvas>
+        
+        <!-- long Valentine message -->
+        <div class="message-box">
+          <p>
+            My dearest Loopy,<br><br>
+            On this Valentine's Day, I wanted to give you something that blooms—just like our friendship. This bouquet is a handful of joy, warmth, and the beauty you bring into my life. Each flower represents a memory, a laugh, a moment of light. You have a heart so kind and a spirit so bright; I'm endlessly grateful for every second we share. May your days be filled with as much color and happiness as these petals hold. Here's to many more years of laughter, secrets, and dreams together.<br><br>
+            With all my love,<br>
+            <span class="signature">♥️ syaa ♥️</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lover (instrumental) – using a free piano track; replace with your own "Lover" instrumental file if needed -->
+  <audio id="bgMusic" loop preload="auto">
+    <source src="https://soundcloud.com/dariia-720661649/sets/st-valentine-day?si=74ac300d327047f6b1c61e9bd4c54532&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing" type="audio/mpeg">
+    Your browser does not support audio.
+  </audio>
+
+  <script>
+    (function() {
+      // ---------- ENVELOPE OPEN/CLOSE ----------
+      const envelope = document.getElementById('envelope');
+      const wrapper = document.getElementById('envelopeWrapper');
+
+      // ---------- CANVAS SETUP ----------
+      const canvas = document.getElementById('flowerCanvas');
+      const ctx = canvas.getContext('2d');
+      const width = 520, height = 520;
+      canvas.width = width; canvas.height = height;
+
+      // bloom factor (0 = bud, 1 = full bloom)
+      let bloomFactor = 0.0;
+      let targetBloom = 0.0;
+      let animationFrame = null;
+
+      // ---------- FUNCTION TO DRAW A REALISTIC FLOWER ----------
+      function drawFlower(ctx, cx, cy, scale, petalColor, centerColor, bloomFactor) {
+        const f = Math.min(1, Math.max(0, bloomFactor));
+
+        // STEM
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(cx, cy + 10 * scale);
+        ctx.lineTo(cx, cy + 70 * scale);
+        ctx.lineWidth = 5 * scale;
+        ctx.strokeStyle = '#5f7e4f';
+        ctx.shadowColor = '#a1ba8f';
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+
+        // leaves
+        ctx.fillStyle = '#6f9e6f';
+        ctx.shadowBlur = 5;
+        // left leaf
+        ctx.save();
+        ctx.translate(cx - 6 * scale, cy + 30 * scale);
+        ctx.rotate(-0.4);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 6 * scale, 15 * scale, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+        // right leaf
+        ctx.save();
+        ctx.translate(cx + 6 * scale, cy + 45 * scale);
+        ctx.rotate(0.5);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 6 * scale, 15 * scale, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+
+        // PETALS
+        const petalCount = 12;
+        for (let i = 0; i < petalCount; i++) {
+          const angle = (i / petalCount) * Math.PI * 2;
+          ctx.save();
+          ctx.translate(cx, cy - 5 * scale);
+          ctx.rotate(angle);
+
+          const length = 30 * scale * (0.3 + f * 0.9);
+          const baseWidth = 12 * scale * (0.4 + f * 0.8);
+
+          const grad = ctx.createLinearGradient(5, -2, length-5, -4);
+          grad.addColorStop(0, petalColor.light);
+          grad.addColorStop(0.6, petalColor.medium);
+          grad.addColorStop(1, petalColor.dark);
+
+          ctx.shadowColor = 'rgba(180,100,120,0.5)';
+          ctx.shadowBlur = 10;
+
+          ctx.beginPath();
+          ctx.moveTo(3 * scale, 0);
+          ctx.quadraticCurveTo(length * 0.5, -baseWidth * 1.2, length, -baseWidth * 0.3);
+          ctx.lineTo(length, baseWidth * 0.3);
+          ctx.quadraticCurveTo(length * 0.5, baseWidth * 1.2, 3 * scale, 0);
+          ctx.closePath();
+          ctx.fillStyle = grad;
+          ctx.fill();
+          ctx.strokeStyle = '#fff5f5';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // CENTER
+        ctx.save();
+        ctx.translate(cx, cy - 5 * scale);
+        ctx.shadowColor = '#c48b5e';
+        ctx.shadowBlur = 15;
+
+        const centerSize = 14 * scale * (0.6 + f * 0.5);
+        ctx.beginPath();
+        ctx.arc(0, 0, centerSize, 0, 2 * Math.PI);
+        const gradCenter = ctx.createRadialGradient(-3, -3, 3, 0, 0, centerSize + 5);
+        gradCenter.addColorStop(0, centerColor.light);
+        gradCenter.addColorStop(0.5, centerColor.medium);
+        gradCenter.addColorStop(1, centerColor.dark);
+        ctx.fillStyle = gradCenter;
+        ctx.fill();
+        ctx.strokeStyle = '#eeb885';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // tiny dots
+        ctx.fillStyle = '#a86f3c';
+        ctx.shadowBlur = 4;
+        for (let d = 0; d < 15; d++) {
+          const rad = Math.random() * Math.PI * 2;
+          const dist = Math.random() * centerSize * 0.8;
+          const x = Math.cos(rad) * dist;
+          const y = Math.sin(rad) * dist;
+          ctx.beginPath();
+          ctx.arc(x, y, 1.5 + Math.random()*2, 0, 2*Math.PI);
+          ctx.fillStyle = `hsl(${30 + Math.random()*20}, 70%, 45%)`;
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      // ---------- DRAW A BOUQUET ----------
+      function drawBouquet(factor) {
+        ctx.clearRect(0, 0, width, height);
+
+        const baseX = 260, baseY = 400;
+
+        const flowers = [
+          { xOff: -30, yOff: -180, scale: 1.0, petal: { light: '#ffb6c1', medium: '#ff8da1', dark: '#d45e84' }, center: { light: '#fde16d', medium: '#d4a13e', dark: '#8b5a2b' } },
+          { xOff: 20, yOff: -150, scale: 1.1, petal: { light: '#f9c1a0', medium: '#f59e7a', dark: '#c6694a' }, center: { light: '#ffe074', medium: '#cc9b40', dark: '#7e5426' } },
+          { xOff: -10, yOff: -120, scale: 0.9, petal: { light: '#fad0f0', medium: '#e29ac0', dark: '#b2638a' }, center: { light: '#ffd966', medium: '#c49a3b', dark: '#755025' } },
+          { xOff: 40, yOff: -200, scale: 1.0, petal: { light: '#c1e1c1', medium: '#9fc99f', dark: '#6f9e6f' }, center: { light: '#f5e56b', medium: '#dbb42c', dark: '#9e751d' } },
+          { xOff: -40, yOff: -140, scale: 1.0, petal: { light: '#fbc0cb', medium: '#f994b0', dark: '#cf7193' }, center: { light: '#fde16d', medium: '#d4a13e', dark: '#8b5a2b' } },
+          { xOff: 10, yOff: -220, scale: 1.2, petal: { light: '#ffdab9', medium: '#ffb07c', dark: '#d47b4c' }, center: { light: '#ffe074', medium: '#cc9b40', dark: '#7e5426' } },
+          { xOff: -20, yOff: -100, scale: 0.9, petal: { light: '#e0c0e0', medium: '#c88ec8', dark: '#9e609e' }, center: { light: '#f5e56b', medium: '#dbb42c', dark: '#9e751d' } }
+        ];
+
+        // draw stems
+        ctx.save();
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = '#a1ba8f';
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#5f7e4f';
+        for (let i = 0; i < flowers.length; i++) {
+          const f = flowers[i];
+          const cx = baseX + f.xOff;
+          const cy = baseY + f.yOff;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy + 10 * f.scale);
+          ctx.lineTo(baseX, baseY);
+          ctx.stroke();
+        }
+
+        // ribbon
+        ctx.fillStyle = '#f7b0b0';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.ellipse(baseX-5, baseY-15, 25, 12, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = '#f28b8b';
+        ctx.beginPath();
+        ctx.ellipse(baseX+5, baseY-20, 25, 12, -0.1, 0, Math.PI*2);
+        ctx.fill();
+        // bow
+        ctx.fillStyle = '#f26b6b';
+        ctx.beginPath();
+        ctx.ellipse(baseX-15, baseY-30, 8, 15, -0.2, 0, Math.PI*2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(baseX+15, baseY-32, 8, 15, 0.2, 0, Math.PI*2);
+        ctx.fill();
+
+        // draw flowers
+        for (let i = 0; i < flowers.length; i++) {
+          const f = flowers[i];
+          const cx = baseX + f.xOff;
+          const cy = baseY + f.yOff;
+          drawFlower(ctx, cx, cy, f.scale, f.petal, f.center, factor);
+        }
+      }
+
+      // animation loop
+      function animateBloom() {
+        if (Math.abs(bloomFactor - targetBloom) > 0.005) {
+          bloomFactor += (targetBloom - bloomFactor) * 0.06;
+          drawBouquet(bloomFactor);
+          animationFrame = requestAnimationFrame(animateBloom);
+        } else {
+          bloomFactor = targetBloom;
+          drawBouquet(bloomFactor);
+          if (animationFrame) {
+            cancelAnimationFrame(animationFrame);
+            animationFrame = null;
+          }
+        }
+      }
+
+      drawBouquet(0);
+
+      // ---------- ENVELOPE CLICK: OPEN, BLOOM & PLAY MUSIC ----------
+      const audio = document.getElementById('bgMusic');
+
+      wrapper.addEventListener('click', function(e) {
+        envelope.classList.toggle('open');
+
+        if (envelope.classList.contains('open')) {
+          targetBloom = 1.0;
+          if (!animationFrame) {
+            animationFrame = requestAnimationFrame(animateBloom);
+          }
+          if (audio.paused) {
+            audio.play().catch(err => {
+              console.log('Autoplay prevented, but envelope click should allow it.', err);
+            });
+          }
+        } else {
+          targetBloom = 0.0;
+          if (!animationFrame) {
+            animationFrame = requestAnimationFrame(animateBloom);
+          }
+        }
+      });
+
+      audio.load();
+    })();
+  </script>
+  <style>
+    .flower-inside {
+      background: #fffcf9;
+    }
+    #flowerCanvas {
+      filter: drop-shadow(0 10px 20px #feb0c2);
+    }
+    .flap-heart {
+      transition: top 0.3s;
+    }
+    .message-box p {
+      text-align: left;
+    }
+  </style>
+</body>
+</html>
